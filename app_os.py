@@ -3,10 +3,7 @@ import pandas as pd
 from datetime import datetime
 import os
 from PIL import Image
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
+import urllib.parse
 
 # Configuração da página
 st.set_page_config(page_title="Transresíduos - Ordens de Serviço", page_icon="🚚", layout="centered")
@@ -64,83 +61,34 @@ fotos_enviadas = st.file_uploader(
     accept_multiple_files=True
 )
 
-# E-mail de destino
+# E-mail de destino (livre para qualquer e-mail)
 st.markdown("### 4. Envio da OS")
-email_destino = st.text_input("E-mail da Oficina / Responsável:", value="manutencao@transresiduos.com.br")
-
-# --- Função para Enviar E-mail ---
-def enviar_email_os(destinatario, assunto, corpo_html, fotos):
-    # Configurações do Servidor de E-mail (Exemplo utilizando Gmail)
-    # Dica: Para usar o Gmail, deve gerar uma "Senha de App" nas definições de segurança da Google.
-    remetente = st.secrets.get("EMAIL_REMETENTE", "seu_email@gmail.com")
-    senha = st.secrets.get("EMAIL_SENHA", "sua_senha_app")
-    
-    # Se não houver configuração de segredos, avisa mas não trava a aplicação visual
-    if remetente == "seu_email@gmail.com":
-        return False, "E-mail de remetente não configurado nos segredos do Streamlit."
-
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = remetente
-        msg['To'] = destinatario
-        msg['Subject'] = assunto
-
-        # Corpo da mensagem em HTML
-        msg.attach(MIMEText(corpo_html, 'html'))
-
-        # Anexar fotografias se existirem
-        if fotos:
-            for foto in fotos:
-                img_data = foto.getvalue()
-                img = MIMEImage(img_data, name=foto.name)
-                msg.attach(img)
-
-        # Conexão com o servidor SMTP (Gmail como padrão)
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(remetente, senha)
-        server.sendmail(remetente, destinatario, msg.as_string())
-        server.quit()
-        return True, "E-mail enviado com sucesso!"
-    except Exception as e:
-        return False, str(e)
+email_destino = st.text_input("E-mail de Destino (Oficina / Responsável):", placeholder="digite.o.email@empresa.com")
 
 # Botão de Gerar OS
-if st.button("Gerar e Enviar Ordem de Serviço 🚀", type="primary"):
+if st.button("Gerar Ordem de Serviço 🚀", type="primary"):
     if not componente.strip() or not solicitante.strip():
         st.warning("Por favor, preencha o componente/avaria e o nome do solicitante antes de gerar a OS.")
     else:
         num_os = f"#{datetime.now().strftime('%d%H%M')}"
         data_atual = datetime.now().strftime('%d/%m/%Y')
 
-        # Montar o conteúdo HTML para o e-mail e ecrã
-        corpo_html = f"""
-        <h3>📄 ORDEM DE SERVIÇO - {num_os}</h3>
-        <p><b>Controle de Frota e Manutenção - Transresíduos</b><br>
-        <i>Data: {data_atual}</i></p>
-        <hr>
-        <h4>DADOS DO VEÍCULO</h4>
-        <ul>
-            <li><b>Frota:</b> {dados_veiculo['code']}</li>
-            <li><b>Modelo:</b> {dados_veiculo['model']} ({dados_veiculo['year']})</li>
-            <li><b>Placa/Chassis:</b> {dados_veiculo['chassis']}</li>
-            <li><b>Solicitante:</b> {solicitante.upper()}</li>
-        </ul>
-        <h4>DETALHES DO SERVIÇO</h4>
-        <p><b>Componente / Avaria:</b> {componente}</p>
-        <hr>
-        <p><i>Mensagem gerada automaticamente pelo aplicativo de Gestão de Frota Transresíduos.</i></p>
-        """
+        st.success(f"Ordem de Serviço **{num_os}** gerada com sucesso para a Frota **{dados_veiculo['code']}**!")
 
-        # Tentar enviar o e-mail
-        assunto_email = f"Nova OS {num_os} - Frota {dados_veiculo['code']}"
-        sucesso_envio, mensagem_retorno = enviar_email_os(email_destino, assunto_email, corpo_html, fotos_enviadas)
+        # Texto formatado para partilha
+        texto_os = f"""*ORDEM DE SERVIÇO - {num_os}*
+*Data:* {data_atual}
+-----------------------------------
+*DADOS DO VEÍCULO*
+• *Frota:* {dados_veiculo['code']}
+• *Modelo:* {dados_veiculo['model']} ({dados_veiculo['year']})
+• *Placa/Chassis:* {dados_veiculo['chassis']}
+• *Solicitante:* {solicitante.upper()}
 
-        if sucesso_envio:
-            st.success(f"Ordem de Serviço gerada e enviada com sucesso para **{email_destino}**! ✉️")
-        else:
-            st.success(f"Ordem de Serviço gerada com sucesso para a Frota **{dados_veiculo['code']}**!")
-            st.info(f"Nota sobre o envio de e-mail: {mensagem_retorno} (A Ficha foi gerada no ecrã abaixo).")
+*DETALHES DO SERVIÇO*
+• *Componente / Avaria:* {componente}
+-----------------------------------
+*Transresíduos - Gestão de Frota*"""
 
         # Exibição Oficial da Ficha de OS no Ecrã
         st.markdown("---")
@@ -158,8 +106,28 @@ if st.button("Gerar e Enviar Ordem de Serviço 🚀", type="primary"):
         **DETALHES DO SERVIÇO**
         - **Componente / Avaria:** `{componente}`
 
-        **Destinatário de Envio:** `{email_destino}`
+        **Destinatário:** `{email_destino if email_destino else 'Não especificado'}`
         """)
+
+        # Links diretos de Partilha (Funciona perfeitamente em qualquer telemóvel)
+        st.markdown("---")
+        st.markdown("### 📤 Enviar / Partilhar OS instantaneamente:")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Botão de WhatsApp
+            texto_whatsapp = urllib.parse.quote(texto_os)
+            url_whatsapp = f"https://api.whatsapp.com/send?text={texto_whatsapp}"
+            st.markdown(f'<a href="{url_whatsapp}" target="_blank" style="text-decoration:none;"><div style="background-color:#25D366;color:white;padding:10px 15px;border-radius:5px;text-align:center;font-weight:bold;">📱 Enviar por WhatsApp</div></a>', unsafe_allow_html=True)
+
+        with col2:
+            # Botão de E-mail Nativo
+            assunto_mail = urllib.parse.quote(f"Nova OS {num_os} - Frota {dados_veiculo['code']}")
+            corpo_mail = urllib.parse.quote(texto_os)
+            email_to = email_destino if email_destino else ""
+            url_email = f"mailto:{email_to}?subject={assunto_mail}&body={corpo_mail}"
+            st.markdown(f'<a href="{url_email}" style="text-decoration:none;"><div style="background-color:#0078D7;color:white;padding:10px 15px;border-radius:5px;text-align:center;font-weight:bold;">✉️ Enviar por E-mail</div></a>', unsafe_allow_html=True)
 
         # Exibir as fotografias anexadas
         if fotos_enviadas:
@@ -168,4 +136,4 @@ if st.button("Gerar e Enviar Ordem de Serviço 🚀", type="primary"):
             for foto in fotos_enviadas:
                 st.image(foto, caption=foto.name, use_container_width=True)
 
-        st.toast("OS processada!", icon="🟢")
+        st.toast("OS gerada com sucesso!", icon="🟢")
