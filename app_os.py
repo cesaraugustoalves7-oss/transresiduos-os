@@ -1,60 +1,4 @@
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-import os
-from PIL import Image
-
-# Configuração da página
-st.set_page_config(page_title="Transresíduos - Ordens de Serviço", page_icon="🚛", layout="centered")
-
-# --- Carregar e Exibir o Logo da Transresíduos ---
-def carregar_logo():
-    # Verifica possíveis nomes para o arquivo de logo que você enviou
-    for nome_possivel in ["logo (3).png", "logo.png", "logo (3).jpg"]:
-        if os.path.exists(nome_possivel):
-            return Image.open(nome_possivel)
-    return None
-
-logo = carregar_logo()
-if logo:
-    st.image(logo, width=180)
-
-st.title("🚛 Transresíduos - Gestão de Frota")
-st.subheader("Abertura de Ordem de Serviço (OS) por Voz")
-
-# Carregar a base de dados dos 355 veículos
-@st.cache_data
-def carregar_frota():
-    if os.path.exists("veiculos_import.csv"):
-        df = pd.read_csv("veiculos_import.csv")
-        df.columns = [str(col).strip().lower() for col in df.columns]
-        return df
-    else:
-        return pd.DataFrame(columns=["code", "model", "chassis", "year"])
-
-df_frota = carregar_frota()
-
-if df_frota.empty:
-    st.error("⚠️ Aviso: O arquivo 'veiculos_import.csv' precisa estar na mesma pasta!")
-else:
-    # 1. Seleção do veículo
-    st.markdown("### 1. Identificação do Veículo")
-    lista_codigos = df_frota["code"].tolist()
-    veiculo_selecionado = st.selectbox("Selecione o Código do Veículo:", lista_codigos)
-    
-    # Puxa os dados do veículo escolhido automaticamente
-    dados_veiculo = df_frota[df_frota["code"] == veiculo_selecionado].iloc[0]
-    
-    st.info(f"""
-    **Modelo:** {dados_veiculo['model']}  
-    **Ano:** {dados_veiculo['year']}  
-    **Chassis:** {dados_veiculo['chassis']}
-    """)
-
-    # 2. Relato do problema (Comando de voz pelo teclado do celular ou PC)
-    st.markdown("### 2. Relato do Problema")
-    st.write("💡 Dica no celular: Toque no microfone do seu teclado (Gboard/Apple) para ditar o texto.")
-  descricao_problema = st.text_area("Descrição da Avaria:", placeholder="Ex: Vazamento de óleo na mangueira principal...")
+descricao_problema = st.text_area("Descrição da Avaria:", placeholder="Ex: Vazamento de óleo na mangueira principal...")
     
     # Novo campo para o Solicitante
     solicitante = st.text_input("Solicitante da Manutenção:", placeholder="Nome de quem reportou o problema")
@@ -85,5 +29,4 @@ else:
             - **Descrição:** _{descricao_problema}_
             - **Destinatário:** `{email_destino}`
             """)
-            st.toast("OS registrada com sucesso!", icon="🟢")
             st.toast("OS registrada com sucesso!", icon="🟢")
