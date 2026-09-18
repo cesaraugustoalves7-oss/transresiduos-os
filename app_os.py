@@ -3,7 +3,6 @@ import pandas as pd
 from datetime import datetime
 import os
 from PIL import Image
-from fpdf import FPDF
 
 # Configuração da página
 st.set_page_config(page_title="Transresíduos - Ordens de Serviço", page_icon="🚚", layout="centered")
@@ -71,117 +70,42 @@ fotos_enviadas = st.file_uploader(
 st.markdown("### 4. Envio da OS")
 email_destino = st.text_input("E-mail da Oficina / Responsável:", value="manutencao@transresiduos.com.br")
 
-# --- Função para Gerar o PDF Oficial compatível com fpdf2 ---
-def gerar_pdf_os(num_os, data_atual, v_data, comp, desc, sol, odo):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=10)
-    
-    # Cabeçalho
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 8, "ORDEM DE SERVIÇO", ln=True)
-    pdf.set_font("Arial", "", 10)
-    pdf.cell(0, 5, "Controle de Frota e Manutenção - Transresíduos", ln=True)
-    pdf.set_xy(150, 10)
-    pdf.set_font("Arial", "B", 11)
-    pdf.cell(50, 6, f"Nº #{num_os}", align="R", ln=True)
-    pdf.set_xy(150, 16)
-    pdf.set_font("Arial", "", 9)
-    pdf.cell(50, 6, f"Data: {data_atual}", align="R", ln=True)
-    
-    pdf.ln(5)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(3)
-    
-    # Dados do Veículo
-    pdf.set_font("Arial", "B", 9)
-    pdf.cell(0, 5, "DADOS DO VEÍCULO", ln=True)
-    pdf.set_font("Arial", "", 10)
-    
-    pdf.cell(95, 6, f"Frota: {v_data['code']}", ln=0)
-    pdf.cell(95, 6, f"Placa/Chassis: {v_data['chassis']}", ln=1)
-    pdf.cell(95, 6, f"Modelo: {v_data['model']} ({v_data['year']})", ln=0)
-    pdf.cell(95, 6, f"Odómetro: {odo}", ln=1)
-    pdf.cell(0, 6, f"Solicitante da OS: {sol.upper()}", ln=1)
-    
-    pdf.ln(2)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(3)
-    
-    # Detalhes do Serviço
-    pdf.set_font("Arial", "B", 9)
-    pdf.cell(0, 5, "DETALHES DO SERVIÇO", ln=True)
-    pdf.set_font("Arial", "", 10)
-    pdf.cell(0, 6, f"Componente: {comp}", ln=1)
-    
-    pdf.ln(2)
-    pdf.set_font("Arial", "B", 9)
-    pdf.cell(0, 5, "Observações / Diagnóstico:", ln=1)
-    pdf.set_font("Arial", "", 10)
-    pdf.multi_cell(0, 8, desc, border=1)
-    
-    pdf.ln(5)
-    pdf.cell(95, 8, "Hora Inicial do Serviço: ____________________", ln=0)
-    pdf.cell(95, 8, "Hora Final do Serviço: ____________________", ln=1)
-    
-    pdf.ln(3)
-    pdf.cell(0, 6, "Descrição do Serviço Executado (Mecânico, Eletricista, etc.):", ln=1)
-    pdf.line(10, pdf.get_y()+2, 200, pdf.get_y()+2)
-    pdf.ln(8)
-    pdf.line(10, pdf.get_y()+2, 200, pdf.get_y()+2)
-    pdf.ln(8)
-    
-    pdf.ln(10)
-    pdf.cell(95, 6, "________________________________________", align="C", ln=0)
-    pdf.cell(95, 6, "________________________________________", align="C", ln=1)
-    pdf.cell(95, 5, "Assinatura do Responsável", align="C", ln=0)
-    pdf.cell(95, 5, "Assinatura do Mecânico/Guincho", align="C", ln=1)
-    
-    return pdf.output()
-
 # Botão de Gerar OS
-if st.button("Gerar OS Oficial e Descarregar 🚀", type="primary"):
+if st.button("Gerar Ordem de Serviço 🚀", type="primary"):
     if not descricao_problema.strip() or not solicitante.strip():
         st.warning("Por favor, preencha a descrição da avaria e o nome do solicitante antes de gerar a OS.")
     else:
-        num_os = datetime.now().strftime('%d%H%M')
+        num_os = f"#{datetime.now().strftime('%d%H%M')}"
         data_atual = datetime.now().strftime('%d/%m/%Y')
 
         st.success(f"Ordem de Serviço gerada com sucesso para a Frota **{dados_veiculo['code']}**!")
 
-        # Gerar o ficheiro PDF em memória
-        pdf_bytes = gerar_pdf_os(
-            num_os=num_os,
-            data_atual=data_atual,
-            v_data=dados_veiculo,
-            comp=componente if componente else "Geral",
-            desc=descricao_problema,
-            sol=solicitante,
-            odo=odometro if odometro else "Não informado"
-        )
-
-        # Botão de Download direto do PDF
-        st.download_button(
-            label="📥 Descarregar Ficha de OS em PDF (Oficial)",
-            data=pdf_bytes,
-            file_name=f"OS_{dados_veiculo['code']}_{num_os}.pdf",
-            mime="application/pdf"
-        )
-
+        # Exibição Oficial da Ficha de OS no Ecrã (idêntica ao modelo solicitado)
         st.markdown("---")
-        st.markdown("### 📄 Pré-visualização da Ficha")
         st.markdown(f"""
-        - **Frota:** `{dados_veiculo['code']}`
-        - **Modelo:** `{dados_veiculo['model']} ({dados_veiculo['year']})`
-        - **Chassis/Placa:** `{dados_veiculo['chassis']}`
-        - **Solicitante:** `{solicitante}`
-        - **Componente:** `{componente}`
-        - **Diagnóstico:** `{descricao_problema}`
-        - **Destinatário do Envio:** `{email_destino}`
+        ### 📄 ORDEM DE SERVIÇO
+        **Controle de Frota e Manutenção** \t\t\t\t **{num_os}**  
+        *Data: {data_atual}*
+        
+        ---
+        **DADOS DO VEÍCULO**
+        - **Frota:** `{dados_veiculo['code']}` | **Placa/Chassis:** `{dados_veiculo['chassis']}`
+        - **Modelo:** `{dados_veiculo['model']} ({dados_veiculo['year']})` | **Odómetro:** `{odometro if odometro else 'N/I'}`
+        - **Solicitante da OS:** `{solicitante.upper()}`
+
+        **DETALHES DO SERVIÇO**
+        - **Componente:** `{componente if componente else 'Geral'}`
+        
+        > **Observações / Diagnóstico:**  
+        > `{descricao_problema}`
+
+        **Destinatário de Envio:** `{email_destino}`
         """)
 
+        # Exibir as fotografias anexadas
         if fotos_enviadas:
-            st.markdown("**Fotografias Anexadas:**")
+            st.markdown("---")
+            st.markdown("**Fotografias Anexadas da Avaria:**")
             for foto in fotos_enviadas:
                 st.image(foto, caption=foto.name, use_container_width=True)
 
