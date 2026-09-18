@@ -21,12 +21,20 @@ if logo:
 st.title("🚚 Transresíduos - Gestão de Frota")
 st.subheader("Abertura de Ordem de Serviço (OS)")
 
-# Relação completa da frota (Pesados e Leves)
-veiculos_data = [
-    {"code": "HD-80", "model": "Hyundai HD 80 Diesel (Caminhão)", "year": "2020", "chassis": "9BW...HD802020"},
-    {"code": "ONIX-01", "model": "Chevrolet Onix (Veículo Leve)", "year": "2022", "chassis": "9BG...ONIX2022"}
-    # Pode adicionar mais veículos aqui no futuro se precisar
-]
+# --- Carregar a Relação de Frota a partir do CSV ---
+@st.cache_data
+def carregar_veiculos():
+    if os.path.exists("veiculos_import.csv"):
+        df = pd.read_csv("veiculos_import.csv")
+        return df.to_dict(orient="records")
+    else:
+        # Fallback de segurança caso o ficheiro não esteja no GitHub
+        return [
+            {"code": "HD-80", "model": "Hyundai HD 80 Diesel", "year": 2020, "chassis": "9BW...HD802020"},
+            {"code": "ONIX-01", "model": "Chevrolet Onix", "year": 2022, "chassis": "9BG...ONIX2022"}
+        ]
+
+veiculos_data = carregar_veiculos()
 
 st.markdown("### 1. Seleção do Veículo")
 veiculo_selecionado = st.selectbox(
