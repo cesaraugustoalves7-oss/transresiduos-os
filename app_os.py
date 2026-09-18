@@ -21,15 +21,16 @@ if logo:
 st.title("🚚 Transresíduos - Gestão de Frota")
 st.subheader("Abertura de Ordem de Serviço (OS)")
 
-# Base de dados dos veículos
+# Relação completa da frota (Pesados e Leves)
 veiculos_data = [
-    {"code": "HD-80", "model": "Hyundai HD 80 Diesel", "year": "2020", "chassis": "9BW...HD802020"},
-    {"code": "ONIX-01", "model": "Chevrolet Onix", "year": "2022", "chassis": "9BG...ONIX2022"}
+    {"code": "HD-80", "model": "Hyundai HD 80 Diesel (Caminhão)", "year": "2020", "chassis": "9BW...HD802020"},
+    {"code": "ONIX-01", "model": "Chevrolet Onix (Veículo Leve)", "year": "2022", "chassis": "9BG...ONIX2022"}
+    # Pode adicionar mais veículos aqui no futuro se precisar
 ]
 
 st.markdown("### 1. Seleção do Veículo")
 veiculo_selecionado = st.selectbox(
-    "Selecione o Veículo / Caminhão:",
+    "Selecione o Veículo / Caminhão da Frota:",
     options=veiculos_data,
     format_func=lambda x: f"{x['code']} - {x['model']} ({x['year']})"
 )
@@ -38,27 +39,27 @@ dados_veiculo = veiculo_selecionado
 
 st.markdown("---")
 st.markdown("### 2. Registo da Avaria / Manutenção")
-st.write("💡 **Dica no telemóvel:** Toque no campo abaixo e use o microfone do seu teclado (Gboard/Apple) para ditar. O texto aparecerá escrito e poderá editá-lo livremente.")
+st.write("💡 **Dica no telemóvel:** Toque no campo abaixo e use o microfone do seu teclado para ditar a avaria. Poderá rever e editar o texto livremente antes de avançar.")
 
-# Campo de texto para a descrição (permite ditar por voz e editar diretamente)
+# Campo de descrição (permite voz e edição)
 descricao_problema = st.text_area("Descrição da Avaria (Dite ou Escreva):", placeholder="Ex: Vazamento de óleo na mangueira principal...")
 
 # Campo para o Solicitante
 solicitante = st.text_input("Solicitante da Manutenção:", placeholder="Nome de quem reportou o problema")
 
-# Novo campo para anexar Fotografias
+# Registo Fotográfico
 st.markdown("### 3. Registo Fotográfico")
 fotos_enviadas = st.file_uploader(
-    "Adicionar fotos da avaria (Pode tirar foto direta ou carregar da galeria):", 
+    "Adicionar fotos da avaria (Tirar foto ou carregar da galeria):", 
     type=["png", "jpg", "jpeg"], 
     accept_multiple_files=True
 )
 
-# 4. E-mail de destino
+# E-mail de destino
 st.markdown("### 4. Envio da OS")
 email_destino = st.text_input("E-mail da Oficina / Responsável:", value="manutencao@transresiduos.com.br")
 
-# 5. Botão de Gerar OS
+# Botão de Gerar OS
 if st.button("Gerar OS e Enviar 🚀", type="primary"):
     if not descricao_problema.strip():
         st.warning("Por favor, descreva o problema antes de gerar a OS.")
@@ -80,7 +81,7 @@ if st.button("Gerar OS e Enviar 🚀", type="primary"):
         - **Destinatário:** `{email_destino}`
         """)
 
-        # Exibir as fotografias anexadas na ficha, se houver
+        # Exibir as fotografias anexadas
         if fotos_enviadas:
             st.markdown("**Fotografias Anexadas:**")
             for foto in fotos_enviadas:
