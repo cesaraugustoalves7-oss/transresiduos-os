@@ -21,7 +21,7 @@ if logo:
 st.title("🚚 Transresíduos - Gestão de Frota")
 st.subheader("Abertura e Emissão de Ordem de Serviço (OS)")
 
-# --- Carregar a Relação de Frota a partir do CSV ---
+# --- Carregar a Relação de Frota a partir do CSV (355 veículos) ---
 @st.cache_data
 def carregar_veiculos():
     if os.path.exists("veiculos_import.csv"):
@@ -46,17 +46,11 @@ dados_veiculo = veiculo_selecionado
 
 st.markdown("---")
 st.markdown("### 2. Detalhes da Manutenção")
-st.write("💡 **Dica no telemóvel:** Toque no campo e use o microfone do teclado para ditar o diagnóstico/avaria.")
+st.write("💡 **Dica no telemóvel:** Toque no campo e use o microfone do teclado para ditar.")
 
-# Componente e Descrição
-componente = st.text_input("Componente Afetado:", placeholder="Ex: Embreagem, Sistema Hidráulico, Motor...")
-descricao_problema = st.text_area("Diagnóstico / Observações:", placeholder="Ex: TROCAR KIT EMBREAGEM E VOLANTE DO MOTOR")
-
-# Solicitante
+# Apenas o Componente Afetado e o Solicitante
+componente = st.text_input("Componente Afetado / Avaria:", placeholder="Ex: Luz de ré queimada, Pneu furado...")
 solicitante = st.text_input("Solicitante da OS:", placeholder="Nome do encarregado ou motorista")
-
-# Odómetro / Quilometragem atual
-odometro = st.text_input("Odómetro / Horímetro Atual (km):", placeholder="Ex: 445.253 km")
 
 # Registo Fotográfico
 st.markdown("### 3. Registo Fotográfico (Opcional)")
@@ -72,15 +66,15 @@ email_destino = st.text_input("E-mail da Oficina / Responsável:", value="manute
 
 # Botão de Gerar OS
 if st.button("Gerar Ordem de Serviço 🚀", type="primary"):
-    if not descricao_problema.strip() or not solicitante.strip():
-        st.warning("Por favor, preencha a descrição da avaria e o nome do solicitante antes de gerar a OS.")
+    if not componente.strip() or not solicitante.strip():
+        st.warning("Por favor, preencha o componente/avaria e o nome do solicitante antes de gerar a OS.")
     else:
         num_os = f"#{datetime.now().strftime('%d%H%M')}"
         data_atual = datetime.now().strftime('%d/%m/%Y')
 
         st.success(f"Ordem de Serviço gerada com sucesso para a Frota **{dados_veiculo['code']}**!")
 
-        # Exibição Oficial da Ficha de OS no Ecrã (idêntica ao modelo solicitado)
+        # Exibição Oficial da Ficha de OS no Ecrã
         st.markdown("---")
         st.markdown(f"""
         ### 📄 ORDEM DE SERVIÇO
@@ -90,14 +84,11 @@ if st.button("Gerar Ordem de Serviço 🚀", type="primary"):
         ---
         **DADOS DO VEÍCULO**
         - **Frota:** `{dados_veiculo['code']}` | **Placa/Chassis:** `{dados_veiculo['chassis']}`
-        - **Modelo:** `{dados_veiculo['model']} ({dados_veiculo['year']})` | **Odómetro:** `{odometro if odometro else 'N/I'}`
+        - **Modelo:** `{dados_veiculo['model']} ({dados_veiculo['year']})`
         - **Solicitante da OS:** `{solicitante.upper()}`
 
         **DETALHES DO SERVIÇO**
-        - **Componente:** `{componente if componente else 'Geral'}`
-        
-        > **Observações / Diagnóstico:**  
-        > `{descricao_problema}`
+        - **Componente / Avaria:** `{componente}`
 
         **Destinatário de Envio:** `{email_destino}`
         """)
