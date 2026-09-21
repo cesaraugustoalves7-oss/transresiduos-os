@@ -9,7 +9,7 @@ import base64
 
 # Importações do ReportLab para gerar o PDF
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
@@ -32,7 +32,7 @@ if logo:
 
 st.title("🚚 Transresíduos - Sistema de Gestão")
 
-# --- CRIAÇÃO DE ABAS (Apenas OS e Check-List) ---
+# --- CRIAÇÃO DE ABAS ---
 aba_os, aba_checklist = st.tabs([
     "🔧 Ordem de Serviço (Frota)", 
     "☑️ Check-List de Manutenção"
@@ -66,13 +66,18 @@ with aba_os:
     )
 
     st.markdown("---")
-    st.markdown("### 2. Detalhes da Manutenção")
+    st.markdown("### 2. Detalhes da Manutenção e Registo Fotográfico")
     componente = st.text_input("Componente Afetado:", placeholder="Ex: Embreagem, Pneu...", key="comp_os")
     observacoes = st.text_area("Observações / Diagnóstico:", placeholder="Ex: TROCAR KIT EMBREAGEM", key="obs_os")
     solicitante = st.text_input("Solicitante da OS:", placeholder="Nome do encarregado", key="sol_os")
+    
+    # --- CAPTURA DE CÂMARA NA OS ---
+    st.markdown("#### 📷 Registo Fotográfico (Opcional)")
+    foto_os = st.camera_input("Tirar foto da avaria/peça", key="cam_os")
+
     email_destino_os = st.text_input("E-mail de Destino (Oficina / Responsável):", value=EMAIL_FIXO_DESTINO, key="email_os")
 
-    def gerar_pdf_os(num_os, data_atual, veiculo, componente, observacoes, solicitante):
+    def gerar_pdf_os(num_os, data_atual, veiculo, componente, observacoes, solicitante, img_file=None):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
         elements = []
@@ -114,6 +119,16 @@ with aba_os:
         t_obs = Table(obs_content, colWidths=[540])
         t_obs.setStyle(TableStyle([('BACKGROUND', (0,0), (-1,-1), colors.whitesmoke), ('BOX', (0,0), (-1,-1), 1, colors.gray), ('PADDING', (0,0), (-1,-1), 6)]))
         elements.append(t_obs)
+        elements.append(Spacer(1, 10))
+
+        # Adicionar imagem ao PDF se existir
+        if img_file is not None:
+            elements.append(Paragraph("<b>REGISTO FOTOGRÁFICO:</b>", secao_estilo))
+            elements.append(Spacer(1, 5))
+            img_path_temp = "temp_foto_os.jpg"
+            with open(img_path_temp, "wb") as f:
+                f.write(img_file.getbuffer())
+            elements.append(RLImage(img_path_temp, width=250, height=187))
         
         doc.build(elements)
         buffer.seek(0)
@@ -131,7 +146,7 @@ with aba_os:
             "sender": {"name": "Transresíduos - Frota", "email": "cesaraugustoalves7@gmail.com"},
             "to": [{"email": destinatario}],
             "subject": assunto,
-            "htmlContent": "<p>Segue em anexo o documento gerado pelo sistema.</p>",
+            "htmlContent": "<p>Segue em anexo o documento gerado pelo sistema com o respetivo registo fotográfico.</p>",
             "attachment": [{"content": pdf_base64, "name": nome_pdf}]
         }
         try:
@@ -151,7 +166,7 @@ with aba_os:
             data_atual = datetime.now().strftime('%d/%m/%Y')
             nome_arquivo_pdf = f"OS_{veiculo_selecionado['code']}_{datetime.now().strftime('%d%m%Y_%H%M')}.pdf"
 
-            pdf_file = gerar_pdf_os(num_os, data_atual, veiculo_selecionado, componente, observacoes, solicitante)
+            pdf_file = gerar_pdf_os(num_os, data_atual, veiculo_selecionado, componente, observacoes, solicitante, foto_os)
             pdf_bytes = pdf_file.getvalue()
 
             assunto = f"Ordem de Serviço {num_os} - C: {veiculo_selecionado['code']}"
@@ -189,6 +204,10 @@ with aba_checklist:
         colaborador = st.text_input("Colaborador / Motorista:", placeholder="Nome do motorista", key="chk_colab")
     with col_b:
         supervisor = st.text_input("Supervisor de Manutenção:", placeholder="Nome do supervisor", key="chk_sup")
+
+    # --- CAPTURA DE CÂMARA NO CHECKLIST ---
+    st.markdown("#### 📷 Registo Fotográfico (Opcional)")
+    foto_chk = st.camera_input("Tirar foto da inspeção do veículo", key="cam_chk")
 
     email_destino_chk = st.text_input("E-mail de Destino do Check-List:", value=EMAIL_FIXO_DESTINO, key="email_chk")
 
@@ -254,7 +273,7 @@ with aba_checklist:
 
     observacoes_chk = st.text_area("Observações Gerais do Check-List:", placeholder="Relate avarias ou detalhes importantes...", key="obs_geral_chk")
 
-    def gerar_pdf_checklist(num_chk, data_atual, veiculo, colab, sup, respostas, obs):
+    def gerar_pdf_checklist(num_chk, data_atual, veiculo, colab, sup, respostas, obs, img_file=None):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
         elements = []
@@ -289,6 +308,15 @@ with aba_checklist:
         
         if obs.strip():
             elements.append(Paragraph(f"<b>Observações:</b> {obs.upper()}", texto_estilo))
+            elements.append(Spacer(1, 10))
+
+        if img_file is not None:
+            elements.append(Paragraph("<b>REGISTO FOTOGRÁFICO DA INSPEÇÃO:</b>", texto_estilo))
+            elements.append(Spacer(1, 5))
+            img_path_temp = "temp_foto_chk.jpg"
+            with open(img_path_temp, "wb") as f:
+                f.write(img_file.getbuffer())
+            elements.append(RLImage(img_path_temp, width=220, height=165))
             
         doc.build(elements)
         buffer.seek(0)
@@ -302,7 +330,7 @@ with aba_checklist:
             num_atual = st.session_state["num_checklist"]
             nome_arquivo_chk = f"Checklist_{veiculo_chk['code']}_{num_atual}.pdf"
 
-            pdf_file = gerar_pdf_checklist(num_atual, data_atual, veiculo_chk, colaborador, supervisor, respostas_chk, observacoes_chk)
+            pdf_file = gerar_pdf_checklist(num_atual, data_atual, veiculo_chk, colaborador, supervisor, respostas_chk, observacoes_chk, foto_chk)
             pdf_bytes = pdf_file.getvalue()
 
             assunto = f"Check-List de Manutenção #{num_atual} - C: {veiculo_chk['code']}"
