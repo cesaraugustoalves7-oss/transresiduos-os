@@ -17,7 +17,7 @@ from reportlab.lib import colors
 st.set_page_config(page_title="Transresíduos - Ordens de Serviço", page_icon="🚚", layout="centered")
 
 # --- E-MAIL FIXO DE DESTINO ---
-EMAIL_FIXO_DESTINO = "cesaraugustoalves7@gmail.com"
+EMAIL_FIXO_DESTINO = "compras@transreisuduos.com.br"
 
 # --- Carregar e Exibir o Logo da Transresíduos ---
 def carregar_logo():
