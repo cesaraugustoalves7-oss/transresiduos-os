@@ -194,7 +194,7 @@ with aba_checklist:
 
     st.markdown("---")
     st.markdown("### Itens de Inspeção")
-    st.write("Indique a situação de cada item (Conforme: SIM, NÃO ou N/A):")[cite: 6]
+    st.write("Indique a situação de cada item (Conforme: SIM, NÃO ou N/A):")
 
     itens_checklist = [
         "Óleo do motor (Nível)",
