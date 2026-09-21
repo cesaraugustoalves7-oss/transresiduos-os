@@ -32,10 +32,9 @@ if logo:
 
 st.title("🚚 Transresíduos - Sistema de Gestão")
 
-# --- CRIAÇÃO DE ABAS ---
-aba_os, aba_orcamento, aba_checklist = st.tabs([
+# --- CRIAÇÃO DE ABAS (Apenas OS e Check-List) ---
+aba_os, aba_checklist = st.tabs([
     "🔧 Ordem de Serviço (Frota)", 
-    "📋 Proposta / Orçamento", 
     "☑️ Check-List de Manutenção"
 ])
 
@@ -167,108 +166,7 @@ with aba_os:
 
 
 # ==========================================
-# ABA 2: PROPOSTA / ORÇAMENTO (MOBILIÁRIO)
-# ==========================================
-with aba_orcamento:
-    st.subheader("Emissão de Proposta Comercial / Orçamento")
-
-    if "num_proposta" not in st.session_state:
-        st.session_state["num_proposta"] = 20  
-
-    st.markdown(f"**Número da Proposta Atual:** {st.session_state['num_proposta']}")
-
-    catalogo_itens = [
-        {"desc": "ESTANTE DE AÇO 6 PRATELEIRAS 1,98X92,5X0,30 CINZA", "preco": 450.00},
-        {"desc": "ROUPEIRO DE AÇO 20 PORTAS MINI COM PITÃO", "preco": 1800.00},
-        {"desc": "ROUPEIRO DE AÇO 16 PORTAS PEQUENAS", "preco": 1700.00},
-        {"desc": "Cadeira Giratória Executiva com Regulagem - Azul", "preco": 480.00},
-        {"desc": "MESA RETA 1,20X0,60X0,74 PÉS PAINEL PRETO", "preco": 560.00},
-        {"desc": "CADEIRA EXECUTIVA FIXA 4 PES", "preco": 280.00},
-        {"desc": "Armário Fechado 800x370x1570 cinza", "preco": 980.00},
-        {"desc": "Gaveteiro Volante 4 Gavetas com corrediça 380x450x620", "preco": 650.00}
-    ]
-
-    itens_selecionados = []
-    for idx, item in enumerate(catalogo_itens):
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.text(item["desc"])
-        with col2:
-            qtd = st.number_input(f"Qtd {idx}", min_value=0, max_value=50, value=0, step=1, key=f"qtd_item_{idx}", label_visibility="collapsed")
-        if qtd > 0:
-            itens_selecionados.append({"descricao": item["desc"], "qtd": qtd, "preco_un": item["preco"], "total": qtd * item["preco"]})
-
-    frete = st.number_input("Valor do Frete (R$):", min_value=0.0, value=150.0, step=10.0, key="frete_orc")
-    email_destino_orc = st.text_input("E-mail de Destino do Orçamento:", value=EMAIL_FIXO_DESTINO, key="email_orc")
-
-    def gerar_pdf_orcamento(num_prop, data_atual, itens, valor_frete):
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
-        elements = []
-        styles = getSampleStyleSheet()
-        
-        titulo_estilo = ParagraphStyle('TituloOrc', parent=styles['Heading1'], fontSize=14, fontName='Helvetica-Bold', textColor=colors.black)
-        texto_estilo = ParagraphStyle('TextoOrc', parent=styles['Normal'], fontSize=8, fontName='Helvetica', textColor=colors.black)
-        
-        elements.append(Paragraph("ROSA DOS VENTOS MÓVEIS CORPORATIVO", titulo_estilo))
-        elements.append(Paragraph(f"<b>Proposta Comercial Nº {num_prop}</b> | Data: {data_atual}", texto_estilo))
-        elements.append(Spacer(1, 10))
-        
-        tabela_dados = [["Descrição do Produto", "Qtd", "Preço Unit. (R$)", "Total (R$)"]]
-        soma_total_itens = sum(it["total"] for it in itens)
-        for it in itens:
-            tabela_dados.append([it["descricao"], str(it["qtd"]), f"{it['preco_un']:.2f}", f"{it['total']:.2f}"])
-            
-        t_produtos = Table(tabela_dados, colWidths=[260, 50, 110, 120])
-        t_produtos.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-            ('ALIGN', (1,0), (-1,-1), 'CENTER'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-            ('FONTSIZE', (0,0), (-1,-1), 8),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-        ]))
-        elements.append(t_produtos)
-        elements.append(Spacer(1, 10))
-        
-        total_geral = soma_total_itens + valor_frete
-        resumo_data = [
-            [Paragraph(f"<b>Subtotal:</b> R$ {soma_total_itens:.2f}", texto_estilo)],
-            [Paragraph(f"<b>Frete:</b> R$ {valor_frete:.2f}", texto_estilo)],
-            [Paragraph(f"<b>TOTAL:</b> R$ {total_geral:.2f}", ParagraphStyle('TotalG', parent=texto_estilo, fontName='Helvetica-Bold'))]
-        ]
-        t_resumo = Table(resumo_data, colWidths=[540])
-        t_resumo.setStyle(TableStyle([('BACKGROUND', (0,0), (-1,-1), colors.whitesmoke), ('BOX', (0,0), (-1,-1), 1, colors.gray), ('PADDING', (0,0), (-1,-1), 6)]))
-        elements.append(t_resumo)
-        
-        doc.build(elements)
-        buffer.seek(0)
-        return buffer, total_geral
-
-    if st.button("Gerar e Enviar Orçamento por E-mail 📋✉️", type="primary", key="btn_orc"):
-        if not itens_selecionados:
-            st.warning("Selecione pelo menos um item.")
-        else:
-            data_atual = datetime.now().strftime('%d/%m/%Y')
-            num_atual = st.session_state["num_proposta"]
-            nome_arquivo_orc = f"Orcamento_Proposta_{num_atual}.pdf"
-
-            pdf_file, valor_total = gerar_pdf_orcamento(num_atual, data_atual, itens_selecionados, frete)
-            pdf_bytes = pdf_file.getvalue()
-
-            assunto = f"Proposta Comercial Nº {num_atual} - Transresíduos"
-            sucesso, msg_retorno = enviar_email_brevo(email_destino_orc, assunto, pdf_bytes, nome_arquivo_orc)
-
-            if sucesso:
-                st.success(f"Proposta Nº {num_atual} enviada com sucesso para **{email_destino_orc}**! ✅")
-                st.session_state["num_proposta"] += 1
-            else:
-                st.warning(f"Aviso no envio: {msg_retorno}")
-
-            st.download_button("📥 Descarregar PDF do Orçamento", data=pdf_bytes, file_name=nome_arquivo_orc, mime="application/pdf", key="dl_orc")
-
-
-# ==========================================
-# ABA 3: CHECK-LIST DE MANUTENÇÃO (FOR LOG 06.001/c)
+# ABA 2: CHECK-LIST DE MANUTENÇÃO (FOR LOG 06.001/c)
 # ==========================================
 with aba_checklist:
     st.subheader("Formulário de Check-List para Manutenção")
@@ -279,7 +177,6 @@ with aba_checklist:
 
     st.markdown(f"**Número Sequencial do Check-List:** #{st.session_state['num_checklist']}")
 
-    # Seleção de veículo para o check-list
     veiculo_chk = st.selectbox(
         "Veículo / Equipamento:",
         options=veiculos_data,
@@ -297,9 +194,8 @@ with aba_checklist:
 
     st.markdown("---")
     st.markdown("### Itens de Inspeção")
-    st.write("Indique a situação de cada item (Conforme: SIM, NÃO ou N/A)[cite: 6]:")
+    st.write("Indique a situação de cada item (Conforme: SIM, NÃO ou N/A):")[cite: 6]
 
-    # Lista de itens do formulário PDF original
     itens_checklist = [
         "Óleo do motor (Nível)",
         "Óleo Hidráulico equip. (Nível)",
@@ -375,7 +271,6 @@ with aba_checklist:
         elements.append(Paragraph(f"<b>Colaborador:</b> {colab.upper()} | <b>Supervisor:</b> {sup.upper()}", texto_estilo))
         elements.append(Spacer(1, 10))
         
-        # Tabela de itens
         tabela_dados = [["Item a Examinar", "Situação"]]
         for item, sit in respostas.items():
             tabela_dados.append([item, sit])
