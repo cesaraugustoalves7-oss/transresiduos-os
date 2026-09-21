@@ -17,7 +17,7 @@ from reportlab.lib import colors
 st.set_page_config(page_title="Transresíduos - Sistema Integrado", page_icon="🚚", layout="centered")
 
 # --- E-MAIL FIXO DE DESTINO ---
-EMAIL_FIXO_DESTINO = "compras@transreiduos.com.br"
+EMAIL_FIXO_DESTINO = "compras@transresiduos.com.br"
 
 # --- Carregar e Exibir o Logo da Transresíduos ---
 def carregar_logo():
