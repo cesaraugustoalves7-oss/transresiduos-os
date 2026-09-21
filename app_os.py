@@ -6,7 +6,6 @@ from PIL import Image
 import io
 import requests
 import base64
-import urllib.parse
 
 # Importações do ReportLab para gerar o PDF
 from reportlab.lib.pagesizes import letter
@@ -18,7 +17,7 @@ from reportlab.lib import colors
 st.set_page_config(page_title="Transresíduos - Ordens de Serviço", page_icon="🚚", layout="centered")
 
 # --- E-MAIL FIXO DE DESTINO ---
-EMAIL_FIXO_DESTINO = "compras@transresiduos.com.br"
+EMAIL_FIXO_DESTINO = "cesaraugustoalves7@gmail.com"
 
 # --- Carregar e Exibir o Logo da Transresíduos ---
 def carregar_logo():
@@ -214,32 +213,3 @@ if st.button("Gerar e Enviar Ordem de Serviço por E-mail ✉️", type="primary
             file_name=nome_arquivo_pdf,
             mime="application/pdf"
         )
-
-st.markdown("---")
-
-# --- BOTÃO DE WHATSAPP ---
-if st.button("Enviar Resumo via WhatsApp 📱"):
-    if not componente.strip() or not solicitante.strip() or not observacoes.strip():
-        st.warning("Por favor, preencha todos os campos antes de enviar para o WhatsApp.")
-    else:
-        num_os = f"#{datetime.now().strftime('%d%H%M')}"
-        data_atual = datetime.now().strftime('%d/%m/%Y')
-        
-        texto_whatsapp = f"""*ORDEM DE SERVIÇO {num_os}*
-📅 Data: {data_atual}
-----------------------------------
-*C:* {dados_veiculo['code']}
-🚙 *Modelo:* {dados_veiculo['model']} ({dados_veiculo['year']})
-🔢 *Chassis:* {dados_veiculo['chassis']}
-👤 *Solicitante:* {solicitante.upper()}
-----------------------------------
-🔧 *Componente:* {componente}
-📝 *Diagnóstico:* {observacoes.upper()}
-----------------------------------
-_Enviado pelo Sistema Transresíduos_"""
-
-        texto_codificado = urllib.parse.quote(texto_whatsapp)
-        link_whatsapp = f"https://api.whatsapp.com/send?text={texto_codificado}"
-        
-        st.markdown(f"### 👉 [Clique aqui para abrir o WhatsApp e enviar a OS]({link_whatsapp})", unsafe_allow_html=True)
-        st.toast("Link do WhatsApp gerado com sucesso!", icon="📱")
