@@ -6,6 +6,7 @@ from PIL import Image
 import io
 import requests
 import base64
+import urllib.parse
 
 # Importações do ReportLab para gerar o PDF
 from reportlab.lib.pagesizes import letter
@@ -15,6 +16,9 @@ from reportlab.lib import colors
 
 # Configuração da página
 st.set_page_config(page_title="Transresíduos - Ordens de Serviço", page_icon="🚚", layout="centered")
+
+# --- E-MAIL FIXO DE DESTINO ---
+EMAIL_FIXO_DESTINO = "cesaraugustoalves7@gmail.com"
 
 # --- Carregar e Exibir o Logo da Transresíduos ---
 def carregar_logo():
@@ -44,11 +48,11 @@ def carregar_veiculos():
 
 veiculos_data = carregar_veiculos()
 
-st.markdown("### 1. Seleção do Veículo da Frota")
+st.markdown("### 1. Seleção do Veículo")
 veiculo_selecionado = st.selectbox(
-    "Selecione o Veículo / Frota:",
+    "Selecione o Veículo:",
     options=veiculos_data,
-    format_func=lambda x: f"Frota: {x['code']} - {x['model']} ({x['year']})"
+    format_func=lambda x: f"C: {x['code']} - {x['model']} ({x['year']})"
 )
 
 dados_veiculo = veiculo_selecionado
@@ -61,17 +65,17 @@ componente = st.text_input("Componente Afetado:", placeholder="Ex: Embreagem, Pn
 observacoes = st.text_area("Observações / Diagnóstico:", placeholder="Ex: TROCAR KIT EMBREAGEM E VOLANTE DO MOTOR")
 solicitante = st.text_input("Solicitante da OS:", placeholder="Nome do encarregado ou motorista (Ex: TEDESCO)")
 
+# Campo para o e-mail de destino
+st.markdown("### 3. Opções de Envio")
+email_destino_input = st.text_input("E-mail de Destino (Oficina / Responsável):", value=EMAIL_FIXO_DESTINO)
+
 # Registo Fotográfico
-st.markdown("### 3. Registo Fotográfico (Opcional)")
+st.markdown("### 4. Registo Fotográfico (Opcional)")
 fotos_enviadas = st.file_uploader(
     "Anexar fotos da avaria:", 
     type=["png", "jpg", "jpeg"], 
     accept_multiple_files=True
 )
-
-# E-mail de destino livre
-st.markdown("### 4. Envio da OS por E-mail")
-email_destino = st.text_input("E-mail de Destino (Oficina / Responsável):", placeholder="oficina@transresiduos.com.br")
 
 # --- Função para Gerar o PDF ---
 def gerar_pdf_os(num_os, data_atual, veiculo, componente, observacoes, solicitante):
@@ -96,7 +100,7 @@ def gerar_pdf_os(num_os, data_atual, veiculo, componente, observacoes, solicitan
     
     elements.append(Paragraph("DADOS DO VEÍCULO", secao_estilo))
     veiculo_data = [
-        [Paragraph(f"<b>Frota:</b> {veiculo['code']}", texto_estilo), Paragraph(f"<b>Placa/Chassis:</b> {veiculo['chassis']}", texto_estilo)],
+        [Paragraph(f"<b>C:</b> {veiculo['code']}", texto_estilo), Paragraph(f"<b>Placa/Chassis:</b> {veiculo['chassis']}", texto_estilo)],
         [Paragraph(f"<b>Modelo:</b> {veiculo['model']} ({veiculo['year']})", texto_estilo), Paragraph("", texto_estilo)],
         [Paragraph(f"<b>Solicitante da OS:</b> {solicitante.upper()}", texto_estilo), Paragraph("", texto_estilo)]
     ]
@@ -168,7 +172,7 @@ def enviar_email_com_pdf(destinatario, assunto, pdf_bytes, nome_pdf):
     }
     
     payload = {
-        "sender": {"name": "Transresíduos - Frota", "email": "manutencao@transresiduos.com.br"},
+        "sender": {"name": "Transresíduos - Frota", "email": "cesaraugustoalves7@gmail.com"},
         "to": [{"email": destinatario}],
         "subject": assunto,
         "htmlContent": f"<p>Segue em anexo a Ordem de Serviço gerada automaticamente pelo sistema de Gestão de Frota.</p>",
@@ -184,29 +188,26 @@ def enviar_email_com_pdf(destinatario, assunto, pdf_bytes, nome_pdf):
     except Exception as e:
         return False, str(e)
 
-# Botão Principal
-if st.button("Gerar e Enviar Ordem de Serviço por E-mail 🚀", type="primary"):
-    if not componente.strip() or not solicitante.strip() or not observacoes.strip() or not email_destino.strip():
-        st.warning("Por favor, preencha todos os campos (Componente, Diagnóstico, Solicitante e o E-mail de destino).")
+# --- BOTÃO DE E-MAIL ---
+if st.button("Gerar e Enviar Ordem de Serviço por E-mail ✉️", type="primary"):
+    if not componente.strip() or not solicitante.strip() or not observacoes.strip():
+        st.warning("Por favor, preencha todos os campos obrigatórios (Componente, Diagnóstico e Solicitante).")
     else:
         num_os = f"#{datetime.now().strftime('%d%H%M')}"
         data_atual = datetime.now().strftime('%d/%m/%Y')
         nome_arquivo_pdf = f"OS_{dados_veiculo['code']}_{datetime.now().strftime('%d%m%Y_%H%M')}.pdf"
 
-        # Gerar PDF em memória
         pdf_file = gerar_pdf_os(num_os, data_atual, dados_veiculo, componente, observacoes, solicitante)
         pdf_bytes = pdf_file.getvalue()
 
-        # Tentar enviar por e-mail automaticamente
-        assunto = f"Ordem de Serviço {num_os} - Frota {dados_veiculo['code']}"
-        sucesso, msg_retorno = enviar_email_com_pdf(email_destino, assunto, pdf_bytes, nome_arquivo_pdf)
+        assunto = f"Ordem de Serviço {num_os} - C: {dados_veiculo['code']}"
+        sucesso, msg_retorno = enviar_email_com_pdf(email_destino_input, assunto, pdf_bytes, nome_arquivo_pdf)
 
         if sucesso:
-            st.success(f"Ordem de Serviço gerada e enviada com sucesso para **{email_destino}**! ✉️✅")
+            st.success(f"Ordem de Serviço gerada e enviada com sucesso para **{email_destino_input}**! ✉️✅")
         else:
             st.warning(f"OS gerada, mas houve um aviso no envio do e-mail: {msg_retorno}")
 
-        # Botão de Download de segurança caso queira descarregar manualmente também
         st.download_button(
             label="📥 Descarregar PDF Localmente",
             data=pdf_bytes,
@@ -214,22 +215,31 @@ if st.button("Gerar e Enviar Ordem de Serviço por E-mail 🚀", type="primary")
             mime="application/pdf"
         )
 
-        # Pré-visualização no ecrã
-        st.markdown("---")
-        st.markdown(f"""
-        ### 📄 RESUMO DA OS ({num_os})
-        - **Frota:** `{dados_veiculo['code']}` | **Placa/Chassis:** `{dados_veiculo['chassis']}`
-        - **Modelo:** `{dados_veiculo['model']} ({dados_veiculo['year']})`
-        - **Solicitante:** `{solicitante.upper()}`
-        - **Componente:** `{componente}`
-        - **Diagnóstico:** `{observacoes.upper()}`
-        - **Enviado para:** `{email_destino}`
-        """)
+st.markdown("---")
 
-        if fotos_enviadas:
-            st.markdown("---")
-            st.markdown("**Fotografias Anexadas da Avaria:**")
-            for foto in fotos_enviadas:
-                st.image(foto, caption=foto.name, use_container_width=True)
+# --- BOTÃO DE WHATSAPP ---
+if st.button("Enviar Resumo via WhatsApp 📱"):
+    if not componente.strip() or not solicitante.strip() or not observacoes.strip():
+        st.warning("Por favor, preencha todos os campos antes de enviar para o WhatsApp.")
+    else:
+        num_os = f"#{datetime.now().strftime('%d%H%M')}"
+        data_atual = datetime.now().strftime('%d/%m/%Y')
+        
+        texto_whatsapp = f"""*ORDEM DE SERVIÇO {num_os}*
+📅 Data: {data_atual}
+----------------------------------
+*C:* {dados_veiculo['code']}
+🚙 *Modelo:* {dados_veiculo['model']} ({dados_veiculo['year']})
+🔢 *Chassis:* {dados_veiculo['chassis']}
+👤 *Solicitante:* {solicitante.upper()}
+----------------------------------
+🔧 *Componente:* {componente}
+📝 *Diagnóstico:* {observacoes.upper()}
+----------------------------------
+_Enviado pelo Sistema Transresíduos_"""
 
-        st.toast("Processo concluído!", icon="🟢")
+        texto_codificado = urllib.parse.quote(texto_whatsapp)
+        link_whatsapp = f"https://api.whatsapp.com/send?text={texto_codificado}"
+        
+        st.markdown(f"### 👉 [Clique aqui para abrir o WhatsApp e enviar a OS]({link_whatsapp})", unsafe_allow_html=True)
+        st.toast("Link do WhatsApp gerado com sucesso!", icon="📱")
