@@ -66,14 +66,14 @@ with aba_os:
     )
 
     st.markdown("---")
-    st.markdown("### 2. Detalhes da Manutenção e Registo Fotográfico")
+    st.markdown("### 2. Detalhes da Manutenção e Foto")
     componente = st.text_input("Componente Afetado:", placeholder="Ex: Embreagem, Pneu...", key="comp_os")
     observacoes = st.text_area("Observações / Diagnóstico:", placeholder="Ex: TROCAR KIT EMBREAGEM", key="obs_os")
     solicitante = st.text_input("Solicitante da OS:", placeholder="Nome do encarregado", key="sol_os")
     
-    # --- ANEXO DE FOTO (Câmara ou Galeria) ---
-    st.markdown("#### 📷 Registo Fotográfico (Opcional)")
-    foto_os = st.file_uploader("Tirar foto ou carregar imagem da avaria", type=["jpg", "jpeg", "png"], key="file_os")
+    # --- BOTÃO OTIMIZADO PARA MOBILE (Câmara / Galeria) ---
+    st.markdown("#### 📷 Anexar Foto da Avaria")
+    foto_os = st.file_uploader("Toque para fotografar ou escolher imagem", type=["jpg", "jpeg", "png"], key="file_os_mob")
 
     email_destino_os = st.text_input("E-mail de Destino (Oficina / Responsável):", value=EMAIL_FIXO_DESTINO, key="email_os")
 
@@ -121,13 +121,21 @@ with aba_os:
         elements.append(t_obs)
         elements.append(Spacer(1, 10))
 
+        # --- BLOCO SEGURO PARA A FOTO NA OS ---
         if img_file is not None:
             elements.append(Paragraph("<b>REGISTO FOTOGRÁFICO:</b>", secao_estilo))
             elements.append(Spacer(1, 5))
             img_path_temp = "temp_foto_os.jpg"
-            with open(img_path_temp, "wb") as f:
-                f.write(img_file.getbuffer())
-            elements.append(RLImage(img_path_temp, width=250, height=187))
+            try:
+                with open(img_path_temp, "wb") as f:
+                    f.write(img_file.getbuffer())
+                
+                with Image.open(img_path_temp) as img_teste:
+                    img_teste.verify()
+                
+                elements.append(RLImage(img_path_temp, width=250, height=187))
+            except Exception:
+                elements.append(Paragraph("<i>[Não foi possível carregar o anexo fotográfico ou o ficheiro é inválido]</i>", texto_estilo))
         
         doc.build(elements)
         buffer.seek(0)
@@ -204,9 +212,9 @@ with aba_checklist:
     with col_b:
         supervisor = st.text_input("Supervisor de Manutenção:", placeholder="Nome do supervisor", key="chk_sup")
 
-    # --- ANEXO DE FOTO (Câmara ou Galeria) ---
-    st.markdown("#### 📷 Registo Fotográfico (Opcional)")
-    foto_chk = st.file_uploader("Tirar foto ou carregar imagem da inspeção", type=["jpg", "jpeg", "png"], key="file_chk")
+    # --- BOTÃO OTIMIZADO PARA MOBILE (Câmara / Galeria) ---
+    st.markdown("#### 📷 Anexar Foto da Inspeção")
+    foto_chk = st.file_uploader("Toque para fotografar ou escolher imagem", type=["jpg", "jpeg", "png"], key="file_chk_mob")
 
     email_destino_chk = st.text_input("E-mail de Destino do Check-List:", value=EMAIL_FIXO_DESTINO, key="email_chk")
 
@@ -309,13 +317,21 @@ with aba_checklist:
             elements.append(Paragraph(f"<b>Observações:</b> {obs.upper()}", texto_estilo))
             elements.append(Spacer(1, 10))
 
+        # --- BLOCO SEGURO PARA A FOTO NO CHECK-LIST ---
         if img_file is not None:
             elements.append(Paragraph("<b>REGISTO FOTOGRÁFICO DA INSPEÇÃO:</b>", texto_estilo))
             elements.append(Spacer(1, 5))
             img_path_temp = "temp_foto_chk.jpg"
-            with open(img_path_temp, "wb") as f:
-                f.write(img_file.getbuffer())
-            elements.append(RLImage(img_path_temp, width=220, height=165))
+            try:
+                with open(img_path_temp, "wb") as f:
+                    f.write(img_file.getbuffer())
+                
+                with Image.open(img_path_temp) as img_teste:
+                    img_teste.verify()
+                
+                elements.append(RLImage(img_path_temp, width=220, height=165))
+            except Exception:
+                elements.append(Paragraph("<i>[Não foi possível carregar o anexo fotográfico ou o ficheiro é inválido]</i>", texto_estilo))
             
         doc.build(elements)
         buffer.seek(0)
