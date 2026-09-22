@@ -121,19 +121,25 @@ with aba_os:
         elements.append(t_obs)
         elements.append(Spacer(1, 10))
 
-        # --- TRATAMENTO SEGURO DA FOTO (CONVERSÃO AUTOMÁTICA) ---
+        # --- TRATAMENTO ROBUSTO DA FOTO NA OS ---
         if img_file is not None:
             elements.append(Paragraph("<b>REGISTO FOTOGRÁFICO:</b>", secao_estilo))
             elements.append(Spacer(1, 5))
             img_path_temp = "temp_foto_os.jpg"
             try:
+                img_file.seek(0)
                 img_pil = Image.open(img_file)
                 if img_pil.mode in ("RGBA", "P"):
                     img_pil = img_pil.convert("RGB")
-                img_pil.save(img_path_temp, "JPEG")
-                elements.append(RLImage(img_path_temp, width=250, height=187))
-            except Exception:
-                elements.append(Paragraph("<i>[Não foi possível carregar o anexo fotográfico]</i>", texto_estilo))
+                
+                img_pil.save(img_path_temp, "JPEG", quality=90)
+                
+                if os.path.exists(img_path_temp):
+                    elements.append(RLImage(img_path_temp, width=250, height=187))
+                else:
+                    elements.append(Paragraph("<i>[Erro: Ficheiro de imagem não gravado]</i>", texto_estilo))
+            except Exception as e:
+                elements.append(Paragraph(f"<i>[Erro ao processar imagem: {str(e)}]</i>", texto_estilo))
         
         doc.build(elements)
         buffer.seek(0)
@@ -315,19 +321,25 @@ with aba_checklist:
             elements.append(Paragraph(f"<b>Observações:</b> {obs.upper()}", texto_estilo))
             elements.append(Spacer(1, 10))
 
-        # --- TRATAMENTO SEGURO DA FOTO (CONVERSÃO AUTOMÁTICA) ---
+        # --- TRATAMENTO ROBUSTO DA FOTO NO CHECK-LIST ---
         if img_file is not None:
             elements.append(Paragraph("<b>REGISTO FOTOGRÁFICO DA INSPEÇÃO:</b>", texto_estilo))
             elements.append(Spacer(1, 5))
             img_path_temp = "temp_foto_chk.jpg"
             try:
+                img_file.seek(0)
                 img_pil = Image.open(img_file)
                 if img_pil.mode in ("RGBA", "P"):
                     img_pil = img_pil.convert("RGB")
-                img_pil.save(img_path_temp, "JPEG")
-                elements.append(RLImage(img_path_temp, width=220, height=165))
-            except Exception:
-                elements.append(Paragraph("<i>[Não foi possível carregar o anexo fotográfico]</i>", texto_estilo))
+                
+                img_pil.save(img_path_temp, "JPEG", quality=90)
+                
+                if os.path.exists(img_path_temp):
+                    elements.append(RLImage(img_path_temp, width=220, height=165))
+                else:
+                    elements.append(Paragraph("<i>[Erro: Ficheiro de imagem não gravado]</i>", texto_estilo))
+            except Exception as e:
+                elements.append(Paragraph(f"<i>[Erro ao processar imagem: {str(e)}]</i>", texto_estilo))
             
         doc.build(elements)
         buffer.seek(0)
