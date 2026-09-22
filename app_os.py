@@ -68,14 +68,13 @@ with aba_os:
     st.markdown("---")
     st.markdown("### 2. Detalhes da Manutenção e Foto")
     
-    # Campos ligados à session_state para não perder dados ao tirar foto
     componente = st.text_input("Componente Afetado:", placeholder="Ex: Embreagem, Pneu...", key="comp_os")
     observacoes = st.text_area("Observações / Diagnóstico:", placeholder="Ex: TROCAR KIT EMBREAGEM", key="obs_os")
     solicitante = st.text_input("Solicitante da OS:", placeholder="Nome do encarregado", key="sol_os")
     
-    # --- BOTÃO OTIMIZADO PARA MOBILE (Câmara / Galeria) ---
-    st.markdown("#### 📷 Anexar Foto da Avaria")
-    foto_os = st.file_uploader("Toque para fotografar ou escolher imagem", type=["jpg", "jpeg", "png", "heic", "webp"], key="file_os_mob")
+    # --- CÂMARA DIRETA PARA MOBILE ---
+    st.markdown("#### 📷 Tirar Foto da Avaria")
+    foto_os = st.camera_input("Clique para tirar a foto", key="cam_os_mob")
 
     email_destino_os = st.text_input("E-mail de Destino (Oficina / Responsável):", value=EMAIL_FIXO_DESTINO, key="email_os")
 
@@ -219,9 +218,9 @@ with aba_checklist:
     with col_b:
         supervisor = st.text_input("Supervisor de Manutenção:", placeholder="Nome do supervisor", key="chk_sup")
 
-    # --- BOTÃO OTIMIZADO PARA MOBILE (Câmara / Galeria) ---
-    st.markdown("#### 📷 Anexar Foto da Inspeção")
-    foto_chk = st.file_uploader("Toque para fotografar ou escolher imagem", type=["jpg", "jpeg", "png", "heic", "webp"], key="file_chk_mob")
+    # --- CÂMARA DIRETA PARA MOBILE ---
+    st.markdown("#### 📷 Tirar Foto da Inspeção")
+    foto_chk = st.camera_input("Clique para tirar a foto", key="cam_chk_mob")
 
     email_destino_chk = st.text_input("E-mail de Destino do Check-List:", value=EMAIL_FIXO_DESTINO, key="email_chk")
 
