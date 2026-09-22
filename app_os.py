@@ -127,8 +127,9 @@ with aba_os:
             elements.append(Spacer(1, 5))
             img_path_temp = "temp_foto_os.jpg"
             try:
-                img_file.seek(0)
-                img_pil = Image.open(img_file)
+                img_bytes = img_file.read()
+                img_pil = Image.open(io.BytesIO(img_bytes))
+                
                 if img_pil.mode in ("RGBA", "P"):
                     img_pil = img_pil.convert("RGB")
                 
@@ -327,8 +328,9 @@ with aba_checklist:
             elements.append(Spacer(1, 5))
             img_path_temp = "temp_foto_chk.jpg"
             try:
-                img_file.seek(0)
-                img_pil = Image.open(img_file)
+                img_bytes = img_file.read()
+                img_pil = Image.open(io.BytesIO(img_bytes))
+                
                 if img_pil.mode in ("RGBA", "P"):
                     img_pil = img_pil.convert("RGB")
                 
