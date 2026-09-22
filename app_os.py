@@ -199,14 +199,14 @@ with aba_os:
 
 
 # ==========================================
-# ABA 2: CHECK-LIST DE MANUTENÇÃO (FOR LOG 06.001/c)
+# ABA 2: CHECK-LIST DE MANUTENÇÃO
 # ==========================================
 with aba_checklist:
     st.subheader("Formulário de Check-List para Manutenção")
-    st.markdown("<b>FOR LOG 06.001/c</b> (Revisão: 03)", unsafe_allow_html=True)
 
+    # Gestão da sequência numérica automática do Check-List
     if "num_checklist" not in st.session_state:
-        st.session_state["num_checklist"] = 100  
+        st.session_state["num_checklist"] = 101  
 
     st.markdown(f"**Número Sequencial do Check-List:** #{st.session_state['num_checklist']}")
 
@@ -305,7 +305,8 @@ with aba_checklist:
         titulo_estilo = ParagraphStyle('TituloChk', parent=styles['Heading1'], fontSize=12, fontName='Helvetica-Bold', textColor=colors.black)
         texto_estilo = ParagraphStyle('TextoChk', parent=styles['Normal'], fontSize=8, fontName='Helvetica', textColor=colors.black)
         
-        elements.append(Paragraph("TRANSRESÍDUOS - CHECK-LIST PARA MANUTENÇÃO (FOR LOG 06.001/c)", titulo_estilo))
+        # Título limpo sem o "FOR LOG"
+        elements.append(Paragraph("TRANSRESÍDUOS - CHECK-LIST PARA MANUTENÇÃO", titulo_estilo))
         elements.append(Paragraph(f"<b>Check-List Nº:</b> #{num_chk} | <b>Data:</b> {data_atual} | <b>Revisão:</b> 03", texto_estilo))
         elements.append(Spacer(1, 5))
         
@@ -374,6 +375,7 @@ with aba_checklist:
 
             if sucesso:
                 st.success(f"Check-List Nº {num_atual} enviado com sucesso para **{email_destino_chk}**! ✅")
+                # Incrementa o número automaticamente para o próximo check-list gerado
                 st.session_state["num_checklist"] += 1
             else:
                 st.warning(f"Aviso no envio: {msg_retorno}")
