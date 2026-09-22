@@ -67,6 +67,8 @@ with aba_os:
 
     st.markdown("---")
     st.markdown("### 2. Detalhes da Manutenção e Foto")
+    
+    # Campos ligados à session_state para não perder dados ao tirar foto
     componente = st.text_input("Componente Afetado:", placeholder="Ex: Embreagem, Pneu...", key="comp_os")
     observacoes = st.text_area("Observações / Diagnóstico:", placeholder="Ex: TROCAR KIT EMBREAGEM", key="obs_os")
     solicitante = st.text_input("Solicitante da OS:", placeholder="Nome do encarregado", key="sol_os")
