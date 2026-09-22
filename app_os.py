@@ -71,9 +71,9 @@ with aba_os:
     observacoes = st.text_area("Observações / Diagnóstico:", placeholder="Ex: TROCAR KIT EMBREAGEM", key="obs_os")
     solicitante = st.text_input("Solicitante da OS:", placeholder="Nome do encarregado", key="sol_os")
     
-    # --- CAPTURA DE CÂMARA NA OS ---
+    # --- ANEXO DE FOTO (Câmara ou Galeria) ---
     st.markdown("#### 📷 Registo Fotográfico (Opcional)")
-    foto_os = st.camera_input("Tirar foto da avaria/peça", key="cam_os")
+    foto_os = st.file_uploader("Tirar foto ou carregar imagem da avaria", type=["jpg", "jpeg", "png"], key="file_os")
 
     email_destino_os = st.text_input("E-mail de Destino (Oficina / Responsável):", value=EMAIL_FIXO_DESTINO, key="email_os")
 
@@ -121,7 +121,6 @@ with aba_os:
         elements.append(t_obs)
         elements.append(Spacer(1, 10))
 
-        # Adicionar imagem ao PDF se existir
         if img_file is not None:
             elements.append(Paragraph("<b>REGISTO FOTOGRÁFICO:</b>", secao_estilo))
             elements.append(Spacer(1, 5))
@@ -205,9 +204,9 @@ with aba_checklist:
     with col_b:
         supervisor = st.text_input("Supervisor de Manutenção:", placeholder="Nome do supervisor", key="chk_sup")
 
-    # --- CAPTURA DE CÂMARA NO CHECKLIST ---
+    # --- ANEXO DE FOTO (Câmara ou Galeria) ---
     st.markdown("#### 📷 Registo Fotográfico (Opcional)")
-    foto_chk = st.camera_input("Tirar foto da inspeção do veículo", key="cam_chk")
+    foto_chk = st.file_uploader("Tirar foto ou carregar imagem da inspeção", type=["jpg", "jpeg", "png"], key="file_chk")
 
     email_destino_chk = st.text_input("E-mail de Destino do Check-List:", value=EMAIL_FIXO_DESTINO, key="email_chk")
 
