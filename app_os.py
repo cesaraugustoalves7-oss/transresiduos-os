@@ -72,9 +72,14 @@ with aba_os:
     observacoes = st.text_area("Observações / Diagnóstico:", placeholder="Ex: TROCAR KIT EMBREAGEM", key="obs_os")
     solicitante = st.text_input("Solicitante da OS:", placeholder="Nome do encarregado", key="sol_os")
     
-    # --- CÂMARA DIRETA PARA MOBILE ---
-    st.markdown("#### 📷 Tirar Foto da Avaria")
-    foto_os = st.camera_input("Clique para tirar a foto", key="cam_os_mob")
+    # --- UPLOAD / CÂMARA DIRETA UNIVERSAL ---
+    st.markdown("#### 📷 Registo Fotográfico")
+    foto_os = st.file_uploader(
+        "Toque abaixo para fotografar diretamente ou escolher da galeria", 
+        type=["jpg", "jpeg", "png", "heic", "webp"], 
+        key="file_os_mob",
+        accept_multiple_files=False
+    )
 
     email_destino_os = st.text_input("E-mail de Destino (Oficina / Responsável):", value=EMAIL_FIXO_DESTINO, key="email_os")
 
@@ -218,9 +223,14 @@ with aba_checklist:
     with col_b:
         supervisor = st.text_input("Supervisor de Manutenção:", placeholder="Nome do supervisor", key="chk_sup")
 
-    # --- CÂMARA DIRETA PARA MOBILE ---
-    st.markdown("#### 📷 Tirar Foto da Inspeção")
-    foto_chk = st.camera_input("Clique para tirar a foto", key="cam_chk_mob")
+    # --- UPLOAD / CÂMARA DIRETA UNIVERSAL ---
+    st.markdown("#### 📷 Registo Fotográfico da Inspeção")
+    foto_chk = st.file_uploader(
+        "Toque abaixo para fotografar diretamente ou escolher da galeria", 
+        type=["jpg", "jpeg", "png", "heic", "webp"], 
+        key="file_chk_mob",
+        accept_multiple_files=False
+    )
 
     email_destino_chk = st.text_input("E-mail de Destino do Check-List:", value=EMAIL_FIXO_DESTINO, key="email_chk")
 
